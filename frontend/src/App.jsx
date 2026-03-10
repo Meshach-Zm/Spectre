@@ -373,9 +373,14 @@ function GenerateStep({ analysis, config, capture }) {
       </div>
       <div style={{ border: '1px solid #222', padding: '28px 24px', background: '#0c0c0c' }}>
         {loadingSteps.map((s, i) => (
-          <div key={s.text} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '6px 0', animation: `appear 0.5s ease ${i * 0.35}s both` }}>
-            <span style={{ color: s.color, fontSize: 10 }}>▸</span>
-            <span style={{ fontSize: 12, color: '#a8a8a8' }}>{s.text}</span>
+          <div key={s.text} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '7px 0', animation: `appear 0.5s ease ${i * 0.35}s both` }}>
+            <span style={{ color: s.color, fontSize: 11 }}>▸</span>
+            <span style={{ fontSize: 13, color: '#bbb' }}>
+              {s.text}
+              {i === loadingSteps.length - 1 && (
+                <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#4ade80', marginLeft: 8, verticalAlign: 'middle', animation: 'blink 1s ease-in-out infinite' }} />
+              )}
+            </span>
           </div>
         ))}
       </div>
@@ -488,6 +493,7 @@ export default function App() {
       </main>
 
       <style>{`
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         @keyframes up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes appear { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
