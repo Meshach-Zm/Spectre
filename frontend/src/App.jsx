@@ -56,7 +56,7 @@ function StepBar({ current, onBack }) {
               }}
             >
               {current > i ? '✓ ' : `${i + 1}. `}{s}
-              {current === i && <span style={{ position: 'absolute', bottom: 2, left: 12, right: 12, height: 1, background: 'linear-gradient(90deg, #22c55e, #22c55e)' }} />}
+              {current === i && <span style={{ position: 'absolute', bottom: 2, left: 12, right: 12, height: 1, background: 'linear-gradient(90deg, #22c55e, #4ade80)' }} />}
             </button>
             {i < steps.length - 1 && <span style={{ color: '#222', fontSize: 12, margin: '0 2px' }}>/</span>}
           </div>
@@ -98,7 +98,7 @@ function CaptureStep({ onCapture }) {
   return (
     <div style={{ animation: 'up 0.25s ease' }}>
       <div style={{ marginBottom: 48 }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: "#4ade80", marginBottom: 16 }}>
+        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 16 }}>
           01 — Input
         </div>
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
@@ -109,6 +109,24 @@ function CaptureStep({ onCapture }) {
         </p>
       </div>
 
+      {/* Screen capture — primary action */}
+      <button
+        onClick={handleScreenCapture}
+        style={btn({ width: '100%', padding: '14px', textAlign: 'center', background: '#9c9797', color: '#000', borderColor: '#fff', fontSize: 13, marginBottom: 1 })}
+        onMouseEnter={e => e.currentTarget.style.background = '#e5e5e5'}
+        onMouseLeave={e => e.currentTarget.style.background = '#f8f3f3'}
+      >
+        ⌘ Capture screen live
+      </button>
+
+      {/* Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
+        <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
+        <span style={{ fontSize: 11, color: '#f7eeee', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or</span>
+        <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
+      </div>
+
+      {/* Drop zone — secondary action */}
       <div
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
         onDragLeave={() => setDragging(false)}
@@ -118,38 +136,27 @@ function CaptureStep({ onCapture }) {
         onMouseLeave={() => setHovering(false)}
         style={{
           border: `1px solid ${dragging ? '#22c55e' : hovering ? '#444' : '#222'}`,
-          padding: '52px 32px',
+          padding: '40px 32px',
           textAlign: 'center',
           cursor: 'pointer',
           transition: 'all 0.12s',
-          marginBottom: 1,
           background: dragging ? 'rgba(34,197,94,0.04)' : '#000',
           position: 'relative',
         }}
       >
-        {/* Corner accents */}
         {(hovering || dragging) && <>
           <span style={{ position: 'absolute', top: -1, left: -1, width: 12, height: 12, borderTop: '2px solid #22c55e', borderLeft: '2px solid #22c55e' }} />
           <span style={{ position: 'absolute', top: -1, right: -1, width: 12, height: 12, borderTop: '2px solid #22c55e', borderRight: '2px solid #22c55e' }} />
           <span style={{ position: 'absolute', bottom: -1, left: -1, width: 12, height: 12, borderBottom: '2px solid #22c55e', borderLeft: '2px solid #22c55e' }} />
           <span style={{ position: 'absolute', bottom: -1, right: -1, width: 12, height: 12, borderBottom: '2px solid #22c55e', borderRight: '2px solid #22c55e' }} />
         </>}
-        <div style={{ fontSize: 28, marginBottom: 12, transition: 'transform 0.15s', transform: hovering ? 'translateY(-3px)' : 'none' }}>↑</div>
+        <div style={{ fontSize: 24, marginBottom: 10, transition: 'transform 0.15s', transform: hovering ? 'translateY(-3px)' : 'none' }}>↑</div>
         <div style={{ fontSize: 13, color: hovering ? '#fff' : '#a8a8a8', transition: 'color 0.12s', marginBottom: 4 }}>
           Drop screenshot here
         </div>
         <div style={{ fontSize: 11, color: '#555' }}>PNG · JPG · WebP</div>
         <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
       </div>
-
-      <button
-        onClick={handleScreenCapture}
-        style={btn({ width: '100%', padding: '12px', textAlign: 'center', borderTop: 'none' })}
-        onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = '#0c0c0c'; e.currentTarget.style.borderColor = '#444' }}
-        onMouseLeave={e => { e.currentTarget.style.color = '#a8a8a8'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#222' }}
-      >
-        ⌘ Capture screen live
-      </button>
     </div>
   )
 }
@@ -176,7 +183,7 @@ function AnalyseStep({ capture, onAnalysis }) {
   return (
     <div style={{ animation: 'up 0.25s ease' }}>
       <div style={{ marginBottom: 40 }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: "#4ade80", marginBottom: 16 }}>02 — Analyse</div>
+        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 16 }}>02 — Analyse</div>
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
           Gemini reads<br />your UI.
         </h1>
@@ -194,7 +201,6 @@ function AnalyseStep({ capture, onAnalysis }) {
             </div>
           </div>
         )}
-        {/* Scan line effect when loading */}
         {loading && <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 50%, rgba(34,197,94,0.02) 50%)', backgroundSize: '100% 4px', pointerEvents: 'none' }} />}
       </div>
 
@@ -251,7 +257,7 @@ function ConfigureStep({ analysis, onConfigure }) {
   return (
     <div style={{ animation: 'up 0.25s ease' }}>
       <div style={{ marginBottom: 40 }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: "#4ade80", marginBottom: 16 }}>03 — Configure</div>
+        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 16 }}>03 — Configure</div>
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
           <span style={{ color: '#22c55e' }}>{analysis.components?.length || 0}</span> components.<br />
           <span style={{ color: '#22c55e' }}>{analysis.suggestedTests?.length || 0}</span> scenarios.
@@ -351,7 +357,10 @@ function GenerateStep({ analysis, config, capture }) {
 
   const copy = () => { navigator.clipboard.writeText(testCode); setCopied(true); setTimeout(() => setCopied(false), 2000) }
   const download = () => {
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([testCode], { type: 'text/javascript' })), download: 'spectre.cy.js' })
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([testCode], { type: 'text/javascript' })),
+      download: 'spectre.cy.js'
+    })
     a.click()
   }
 
@@ -360,25 +369,29 @@ function GenerateStep({ analysis, config, capture }) {
     { text: 'Mapping user journeys...', color: '#22c55e' },
     { text: 'Writing intercept handlers...', color: '#38bdf8' },
     { text: 'Adding edge cases...', color: '#38bdf8' },
-    { text: 'Finalising test suite...', color: '#22c55e' },
+    { text: 'Finalising test suite...', color: '#4ade80' },
   ]
 
   if (loading) return (
     <div style={{ animation: 'up 0.25s ease' }}>
       <div style={{ marginBottom: 48 }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: "#4ade80", marginBottom: 16 }}>04 — Generate</div>
+        <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4ade80', marginBottom: 16 }}>04 — Generate</div>
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
           Writing<br />your tests.
         </h1>
       </div>
       <div style={{ border: '1px solid #222', padding: '28px 24px', background: '#0c0c0c' }}>
         {loadingSteps.map((s, i) => (
-          <div key={s.text} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '7px 0', animation: `appear 0.5s ease ${i * 0.35}s both` }}>
-            <span style={{ color: s.color, fontSize: 11 }}>▸</span>
-            <span style={{ fontSize: 13, color: '#bbb' }}>
+          <div key={s.text} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '6px 0', animation: `appear 0.5s ease ${i * 0.35}s both` }}>
+            <span style={{ color: s.color, fontSize: 10 }}>▸</span>
+            <span style={{ fontSize: 12, color: '#a8a8a8' }}>
               {s.text}
               {i === loadingSteps.length - 1 && (
-                <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: '#4ade80', marginLeft: 8, verticalAlign: 'middle', animation: 'blink 1s ease-in-out infinite' }} />
+                <span style={{
+                  display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                  background: '#4ade80', marginLeft: 8, verticalAlign: 'middle',
+                  animation: 'blink 1s ease-in-out infinite'
+                }} />
               )}
             </span>
           </div>
@@ -391,8 +404,8 @@ function GenerateStep({ analysis, config, capture }) {
     <div style={{ animation: 'up 0.25s ease', border: '1px solid #222', padding: 24 }}>
       <div style={{ fontSize: 12, color: '#ef4444', marginBottom: 16 }}>⚠ {error}</div>
       <button onClick={() => { hasFetched.current = false; generate() }} style={btn({ color: '#fff', borderColor: '#333' })}
-        onMouseEnter={e => { e.currentTarget.style.background = '#0c0c0c' }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+        onMouseEnter={e => e.currentTarget.style.background = '#0c0c0c'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
         Retry →
       </button>
     </div>
@@ -402,18 +415,31 @@ function GenerateStep({ analysis, config, capture }) {
 
   return (
     <div style={{ animation: 'up 0.25s ease' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 48, gap: 24, position: 'relative' }}>
+      {/* Sticky floating toolbar */}
+      <div style={{
+        position: 'sticky', top: 48, zIndex: 9,
+        background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)',
+        borderBottom: '1px solid #1a1a1a',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 0', marginBottom: 40,
+      }}>
         <div>
-          <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: "#4ade80", marginBottom: 16 }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#22c55e', marginBottom: 4 }}>
             ✓ Complete
           </div>
-          <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em' }}>
-            <span style={{ color: '#22c55e' }}>{lineCount}</span> lines.<br />Ready to run.
-          </h1>
+          <div style={{ fontSize: 20, fontWeight: 400, letterSpacing: '-0.02em' }}>
+            <span style={{ color: '#22c55e' }}>{lineCount}</span>
+            <span style={{ color: '#a8a8a8' }}> lines · Ready to run</span>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, paddingTop: 28, position: 'sticky', top: 60 }}>
+        <div style={{ display: 'flex', gap: 1 }}>
           <button onClick={copy}
-            style={btn({ color: copied ? '#22c55e' : '#a8a8a8', borderColor: copied ? 'rgba(34,197,94,0.3)' : '#222', background: copied ? 'rgba(34,197,94,0.06)' : 'transparent', fontSize: 13, padding: '10px 20px' })}
+            style={btn({
+              fontSize: 13, padding: '10px 20px',
+              color: copied ? '#22c55e' : '#a8a8a8',
+              borderColor: copied ? 'rgba(34,197,94,0.4)' : '#222',
+              background: copied ? 'rgba(34,197,94,0.06)' : 'transparent',
+            })}
             onMouseEnter={e => { if (!copied) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#444' } }}
             onMouseLeave={e => { if (!copied) { e.currentTarget.style.color = '#a8a8a8'; e.currentTarget.style.borderColor = '#222' } }}>
             {copied ? '✓ copied' : 'copy'}
@@ -432,7 +458,7 @@ function GenerateStep({ analysis, config, capture }) {
       {sessionId && (
         <div style={{ border: '1px solid #222', marginTop: 1 }}>
           <div style={{ display: 'flex', borderBottom: answer ? '1px solid #222' : 'none' }}>
-            <div style={{ padding: '13px 16px', fontSize: 13, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#888', borderRight: '1px solid #222', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+            <div style={{ padding: '13px 16px', fontSize: 13, letterSpacing: '0.04em', color: '#888', borderRight: '1px solid #222', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
               Ask
             </div>
             <input
@@ -443,8 +469,15 @@ function GenerateStep({ analysis, config, capture }) {
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', padding: '13px 16px', fontSize: 12, fontFamily: 'DM Mono', color: '#fff', caretColor: '#22c55e' }}
             />
             {question.trim() && (
-              <button onClick={askQuestion} disabled={asking} style={{ padding: '13px 16px', background: 'transparent', border: 'none', borderLeft: '1px solid #222', color: asking ? '#444' : '#22c55e', cursor: asking ? 'not-allowed' : 'pointer', fontSize: 18, fontFamily: 'DM Mono', fontWeight: 500, transition: 'color 0.12s' }}>
-                {asking ? '...' : '→'}
+              <button onClick={askQuestion} disabled={asking} style={{
+                padding: '13px 18px', background: 'transparent', border: 'none',
+                borderLeft: '1px solid #222',
+                color: asking ? '#444' : '#22c55e',
+                cursor: asking ? 'not-allowed' : 'pointer',
+                fontSize: 18, fontFamily: 'DM Mono', fontWeight: 500,
+                transition: 'color 0.12s', lineHeight: 1,
+              }}>
+                {asking ? '·' : '→'}
               </button>
             )}
           </div>
@@ -478,7 +511,7 @@ export default function App() {
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
-          <span style={{ fontSize: 12, color: '#888', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: 'DM Mono' }}>
+          <span style={{ fontSize: 12, color: '#888', letterSpacing: '0.06em', fontFamily: 'DM Mono' }}>
             Gemini 2.5 Flash
           </span>
         </div>
@@ -493,10 +526,10 @@ export default function App() {
       </main>
 
       <style>{`
-      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         @keyframes up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes appear { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         input::placeholder { color: #555; }
         * { box-sizing: border-box; }
         button { font-family: 'DM Mono', monospace; }
