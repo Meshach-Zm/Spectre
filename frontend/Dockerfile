@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-ARG VITE_BACKEND_URL
+ARG VITE_BACKEND_URL=https://spectre-backend-60725814455.europe-west1.run.app
 ENV VITE_BACKEND_URL=$VITE_BACKEND_URL
 RUN npm run build
 
