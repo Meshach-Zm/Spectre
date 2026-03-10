@@ -1,0 +1,13 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'VITE_BACKEND_URL=${_VITE_BACKEND_URL}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/spectre-frontend'
+      - '.'
+images:
+  - 'gcr.io/$PROJECT_ID/spectre-frontend'
+substitutions:
+  _VITE_BACKEND_URL: ''
