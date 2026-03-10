@@ -8,10 +8,28 @@ import { sessionRoutes } from './routes/session.js'
 const app = express()
 const PORT = process.env.PORT || 8080
 
-app.use(cors())
+const allowedOrigins = [
+  'https://spectre-frontend-60725814455.europe-west1.run.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman) and allowed origins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error(`CORS blocked: ${origin}`))
+    }
+  },
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}))
+
 app.use(express.json({ limit: '20mb' }))
 
-// Health check — required for Cloud Run
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'spectre-backend', version: '1.0.0' })
 })
@@ -27,4 +45,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Spectre backend running on port ${PORT}`)
+  console.log(`Gemini key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`)
 })
