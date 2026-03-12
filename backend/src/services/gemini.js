@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
 // Analyze a screenshot and extract UI components and interactions
 export async function analyzeScreenshot(base64Image, mimeType = 'image/png') {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = `You are a QA automation expert analyzing a web application screenshot.
 
@@ -67,7 +67,7 @@ Return ONLY valid JSON. No markdown, no explanation.`
 
 // Generate Cypress test suite from analysis + user context
 export async function generateCypressTests(analysis, userContext = {}) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = `You are a senior QA automation engineer. Generate a complete, production-ready Cypress test suite.
 
@@ -98,7 +98,7 @@ Return ONLY the complete JavaScript test file content. No markdown code blocks, 
 
 // Analyze screenshot and answer a follow-up question about it
 export async function askAboutScreenshot(base64Image, question, conversationHistory = []) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const history = conversationHistory.map(turn => ({
     role: turn.role,
@@ -113,4 +113,53 @@ export async function askAboutScreenshot(base64Image, question, conversationHist
   ])
 
   return result.response.text()
+}
+
+// Generate tests from full extension payload (screenshot + DOM + network)
+export async function generateFromExtension({ image, mimeType, dom, meta, network, config }) {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+
+  const hasDom = dom && dom.length > 0
+  const hasNetwork = network && network.length > 0
+
+  // Build network summary for the prompt
+  const networkSummary = hasNetwork
+    ? network.slice(0, 30).map(r => `${r.method} ${r.url} → ${r.status}`).join('\n')
+    : null
+
+  const prompt = `You are a senior QA automation engineer. Generate a complete, production-ready Cypress test suite.
+
+## Instructions
+${hasDom ? '- You have been provided with the real DOM tree. You MUST ONLY use selectors found in this DOM. Do not guess or invent selectors.' : '- No DOM provided. Use semantic selectors based on the screenshot.'}
+${hasNetwork ? '- You have been provided with real network requests. You MUST ONLY use these exact endpoints in cy.intercept() calls. Do not guess or invent routes.' : '- No network log provided. Infer likely routes from the UI context.'}
+
+## App Context
+- URL: ${config?.baseUrl || meta?.url || 'http://localhost:3000'}
+- Page title: ${meta?.title || 'Unknown'}
+- Focus area: ${config?.focus || 'all user journeys'}
+- Notes: ${config?.notes || 'none'}
+
+${hasDom ? `## DOM Tree (real — use ONLY these selectors)\n\`\`\`html\n${dom.slice(0, 40000)}\n\`\`\`` : ''}
+
+${hasNetwork ? `## Network Requests (real — use ONLY these routes in cy.intercept())\n${networkSummary}` : ''}
+
+## Rules
+1. Use cy.intercept() with aliases for ALL API calls — NEVER cy.wait(milliseconds)
+2. Always cy.wait('@aliasName') after triggering a network event
+3. ${hasDom ? 'Use data-testid or data-cy selectors from the DOM above — prefer these over class or tag selectors' : 'Use semantic selectors (role, label, placeholder)'}
+4. Cover: happy path, 500 error, 404 error, empty state, viewport (desktop + mobile)
+5. Each test must be fully independent — beforeEach resets state
+6. Add a beforeEach auth block if the page appears to require authentication
+7. Add WHY THIS TEST MATTERS comment on each test
+8. Include anti-flaky pattern comment block at the top
+
+Return ONLY the raw .cy.js file content. No markdown, no code fences, no explanation.`
+
+  const parts = [
+    prompt,
+    { inlineData: { mimeType: mimeType || 'image/png', data: image } }
+  ]
+
+  const result = await model.generateContent(parts)
+  return result.response.text().trim().replace(/```javascript|```js|```/g, '').trim()
 }
