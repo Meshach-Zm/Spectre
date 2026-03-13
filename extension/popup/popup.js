@@ -1,11 +1,29 @@
 const BACKEND = 'https://spectre-backend-60725814455.europe-west1.run.app'
 
 let generatedCode = null
+let currentMode = 'snapshot'
+let isRecording = false
+let recordingInterval = null
+
+// ── Mode switch ───────────────────────────────────────────────────────────────
+window.switchMode = function (mode) {
+    currentMode = mode
+    document.getElementById('tab-snapshot').classList.toggle('active', mode === 'snapshot')
+    document.getElementById('tab-record').classList.toggle('active', mode === 'record')
+    document.getElementById('panel-snapshot').classList.toggle('active', mode === 'snapshot')
+    document.getElementById('panel-record').classList.toggle('active', mode === 'record')
+    resetSharedUI()
+}
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
-function show(id) { document.getElementById(id).classList.add('visible') }
-function hide(id) { document.getElementById(id).classList.remove('visible') }
-function showStep(n) { document.getElementById(`step-${n}`).classList.add('visible') }
+function show(id) { document.getElementById(id)?.classList.add('visible') }
+function hide(id) { document.getElementById(id)?.classList.remove('visible') }
+function showStep(n, text) {
+    const el = document.getElementById(`step-${n}`)
+    el?.classList.add('visible')
+    const textEl = document.getElementById(`step-${n}-text`)
+    if (textEl && text) textEl.textContent = text
+}
 
 function setError(msg) {
     const box = document.getElementById('error-box')
@@ -13,69 +31,47 @@ function setError(msg) {
     show('error-box')
 }
 
-function setDisabled(disabled) {
-    document.getElementById('btn-generate').disabled = disabled
-}
-
-function resetUI() {
+function resetSharedUI() {
     hide('loading-box')
     hide('result-box')
     hide('error-box')
     generatedCode = null
-    document.getElementById('badge-dom').classList.remove('active')
-    document.getElementById('badge-network').classList.remove('active')
     for (let i = 1; i <= 5; i++) {
-        document.getElementById(`step-${i}`).classList.remove('visible')
+        document.getElementById(`step-${i}`)?.classList.remove('visible')
     }
 }
 
-// ── Main flow ─────────────────────────────────────────────────────────────────
+// ── SNAPSHOT FLOW ─────────────────────────────────────────────────────────────
 document.getElementById('btn-generate').addEventListener('click', async () => {
-    resetUI()
-    setDisabled(true)
+    resetSharedUI()
+    document.getElementById('btn-generate').disabled = true
     show('loading-box')
 
     try {
-        // ── Step 1: Screenshot ──────────────────────────────────────────────────
-        showStep(1)
+        showStep(1, 'Capturing screenshot...')
         const screenshot = await captureScreenshot()
         if (screenshot.error) throw new Error('Screenshot failed: ' + screenshot.error)
 
-        // ── Step 2: DOM ─────────────────────────────────────────────────────────
-        showStep(2)
+        showStep(2, 'Scraping DOM tree...')
         const domData = await scrapeDom()
-        if (domData) {
-            document.getElementById('badge-dom').classList.add('active')
-        }
+        if (domData) document.getElementById('badge-dom').classList.add('active')
 
-        // ── Step 3: Network ─────────────────────────────────────────────────────
-        showStep(3)
+        showStep(3, 'Reading network requests...')
         const networkData = await getNetworkLog()
-        if (networkData && networkData.length > 0) {
-            document.getElementById('badge-network').classList.add('active')
-        }
+        if (networkData?.length > 0) document.getElementById('badge-network').classList.add('active')
 
-        // ── Step 4: Send to backend ─────────────────────────────────────────────
-        showStep(4)
+        showStep(4, 'Sending to Gemini...')
         const config = {
-            baseUrl: document.getElementById('input-url').value || 'http://localhost:3000',
-            focus: document.getElementById('input-focus').value || '',
-            notes: document.getElementById('input-notes').value || '',
+            baseUrl: document.getElementById('snap-url').value || 'http://localhost:3000',
+            focus: document.getElementById('snap-focus').value || '',
+            notes: document.getElementById('snap-notes').value || '',
         }
 
         showStep(5)
-        const result = await generateTests({
-            screenshot,
-            dom: domData,
-            network: networkData,
-            config,
-        })
+        const result = await generateFromSnapshot({ screenshot, dom: domData, network: networkData, config })
 
-        // ── Done ────────────────────────────────────────────────────────────────
         generatedCode = result.testCode
-        const lineCount = generatedCode.split('\n').length
-        document.getElementById('result-lines').textContent = `${lineCount} lines`
-
+        document.getElementById('result-lines').textContent = `${generatedCode.split('\n').length} lines`
         hide('loading-box')
         show('result-box')
 
@@ -83,11 +79,167 @@ document.getElementById('btn-generate').addEventListener('click', async () => {
         hide('loading-box')
         setError(err.message)
     } finally {
-        setDisabled(false)
+        document.getElementById('btn-generate').disabled = false
     }
 })
 
-// ── Screenshot ────────────────────────────────────────────────────────────────
+// ── RECORD FLOW ───────────────────────────────────────────────────────────────
+document.getElementById('btn-start-record').addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+
+    // Clear previous session
+    chrome.runtime.sendMessage({ type: 'CLEAR_SESSION', tabId: tab.id })
+    hide('session-summary')
+    resetSharedUI()
+
+    // Tell content script to start recording
+    chrome.tabs.sendMessage(tab.id, { type: 'START_RECORDING' }, (response) => {
+        if (chrome.runtime.lastError || !response?.success) {
+            setError('Could not start recording. Try refreshing the page.')
+            return
+        }
+
+        isRecording = true
+        document.getElementById('btn-start-record').style.display = 'none'
+        document.getElementById('btn-stop-record').style.display = 'block'
+        document.getElementById('btn-discard').style.display = 'block'
+        show('recording-status')
+
+        // Poll interaction count every second
+        recordingInterval = setInterval(async () => {
+            const states = await getSessionStates(tab.id)
+            const count = states.length
+            document.getElementById('rec-count').textContent = `${count} / 10`
+
+            // Auto-stop at limit
+            if (count >= 10) stopRecording(tab)
+        }, 1000)
+    })
+})
+
+document.getElementById('btn-stop-record').addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+    stopRecording(tab)
+})
+
+document.getElementById('btn-discard').addEventListener('click', async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+
+    clearInterval(recordingInterval)
+    isRecording = false
+
+    chrome.tabs.sendMessage(tab.id, { type: 'STOP_RECORDING' })
+    chrome.runtime.sendMessage({ type: 'CLEAR_SESSION', tabId: tab.id })
+
+    document.getElementById('btn-start-record').style.display = 'block'
+    document.getElementById('btn-stop-record').style.display = 'none'
+    document.getElementById('btn-discard').style.display = 'none'
+    hide('recording-status')
+    hide('session-summary')
+    resetSharedUI()
+})
+
+async function stopRecording(tab) {
+    clearInterval(recordingInterval)
+    isRecording = false
+
+    // Stop recording in content script
+    chrome.tabs.sendMessage(tab.id, { type: 'STOP_RECORDING' })
+
+    document.getElementById('btn-stop-record').style.display = 'none'
+    hide('recording-status')
+
+    // Get the full session
+    const states = await getSessionStates(tab.id)
+
+    if (states.length === 0) {
+        setError('No interactions recorded. Try clicking around the page first.')
+        document.getElementById('btn-start-record').style.display = 'block'
+        document.getElementById('btn-discard').style.display = 'none'
+        return
+    }
+
+    // Show session summary
+    showSessionSummary(states)
+
+    // Start generating
+    await generateFromSession(tab, states)
+}
+
+function showSessionSummary(states) {
+    const list = document.getElementById('session-actions-list')
+    list.innerHTML = ''
+
+    states.slice(0, 6).forEach(state => {
+        const div = document.createElement('div')
+        div.className = 'session-action'
+
+        const type = document.createElement('span')
+        type.className = 'action-type'
+        type.textContent = state.action?.type || 'unknown'
+
+        const detail = document.createElement('span')
+        detail.textContent = state.action?.text || state.action?.url?.replace(/^https?:\/\/[^/]+/, '') || '—'
+        detail.style.overflow = 'hidden'
+        detail.style.textOverflow = 'ellipsis'
+        detail.style.whiteSpace = 'nowrap'
+        detail.style.maxWidth = '180px'
+
+        div.appendChild(type)
+        div.appendChild(detail)
+        list.appendChild(div)
+    })
+
+    if (states.length > 6) {
+        const more = document.createElement('div')
+        more.className = 'session-action'
+        more.style.color = '#444'
+        more.textContent = `+ ${states.length - 6} more interactions`
+        list.appendChild(more)
+    }
+
+    show('session-summary')
+}
+
+async function generateFromSession(tab, states) {
+    resetSharedUI()
+    show('loading-box')
+
+    try {
+        showStep(1, `Processing ${states.length} recorded states...`)
+        showStep(2, 'Analysing DOM snapshots...')
+
+        const networkData = await getNetworkLog(tab.id)
+
+        showStep(3, 'Reading captured network requests...')
+        showStep(4, 'Sending session to Gemini...')
+
+        const config = {
+            baseUrl: document.getElementById('rec-url').value || 'http://localhost:3000',
+            notes: document.getElementById('rec-notes').value || '',
+        }
+
+        showStep(5)
+        const result = await generateFromSessionAPI({ states, network: networkData, config })
+
+        generatedCode = result.testCode
+        document.getElementById('result-lines').textContent = `${generatedCode.split('\n').length} lines`
+        hide('loading-box')
+        show('result-box')
+
+        // Reset record UI
+        document.getElementById('btn-start-record').style.display = 'block'
+        document.getElementById('btn-discard').style.display = 'none'
+
+    } catch (err) {
+        hide('loading-box')
+        setError(err.message)
+        document.getElementById('btn-start-record').style.display = 'block'
+        document.getElementById('btn-discard').style.display = 'none'
+    }
+}
+
+// ── API calls ─────────────────────────────────────────────────────────────────
 function captureScreenshot() {
     return new Promise((resolve) => {
         chrome.runtime.sendMessage({ type: 'CAPTURE_SCREENSHOT' }, (response) => {
@@ -96,31 +248,35 @@ function captureScreenshot() {
     })
 }
 
-// ── DOM scrape ────────────────────────────────────────────────────────────────
 async function scrapeDom() {
     try {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
         const response = await chrome.tabs.sendMessage(tab.id, { type: 'SCRAPE_DOM' })
         return response || null
-    } catch {
-        return null // graceful fallback — DOM not available
-    }
+    } catch { return null }
 }
 
-// ── Network log ───────────────────────────────────────────────────────────────
-async function getNetworkLog() {
+async function getNetworkLog(tabId) {
     try {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-        const key = `network_${tab.id}`
+        if (!tabId) {
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
+            tabId = tab.id
+        }
+        const key = `network_${tabId}`
         const result = await chrome.storage.local.get(key)
         return result[key] || []
-    } catch {
-        return []
-    }
+    } catch { return [] }
 }
 
-// ── Generate tests ────────────────────────────────────────────────────────────
-async function generateTests({ screenshot, dom, network, config }) {
+async function getSessionStates(tabId) {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: 'GET_SESSION_STATES', tabId }, (response) => {
+            resolve(response?.states || [])
+        })
+    })
+}
+
+async function generateFromSnapshot({ screenshot, dom, network, config }) {
     const res = await fetch(`${BACKEND}/api/generate-from-extension`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,38 +289,37 @@ async function generateTests({ screenshot, dom, network, config }) {
             config,
         })
     })
-
-    const text = await res.text()
-    if (!text) throw new Error('Empty response from server')
-
-    const data = JSON.parse(text)
+    const data = await res.json()
     if (!data.success) throw new Error(data.error || 'Generation failed')
     return data
 }
 
-// ── Copy ──────────────────────────────────────────────────────────────────────
+async function generateFromSessionAPI({ states, network, config }) {
+    const res = await fetch(`${BACKEND}/api/generate-from-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ states, network, config })
+    })
+    const data = await res.json()
+    if (!data.success) throw new Error(data.error || 'Generation failed')
+    return data
+}
+
+// ── Copy & Download ───────────────────────────────────────────────────────────
 document.getElementById('btn-copy').addEventListener('click', () => {
     if (!generatedCode) return
     navigator.clipboard.writeText(generatedCode).then(() => {
         const btn = document.getElementById('btn-copy')
         btn.textContent = '✓ copied'
         btn.classList.add('copied')
-        setTimeout(() => {
-            btn.textContent = 'copy'
-            btn.classList.remove('copied')
-        }, 2000)
+        setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied') }, 2000)
     })
 })
 
-// ── Download ──────────────────────────────────────────────────────────────────
 document.getElementById('btn-download').addEventListener('click', () => {
     if (!generatedCode) return
     const blob = new Blob([generatedCode], { type: 'text/javascript' })
     const url = URL.createObjectURL(blob)
-    const a = Object.assign(document.createElement('a'), {
-        href: url,
-        download: 'spectre.cy.js'
-    })
-    a.click()
+    Object.assign(document.createElement('a'), { href: url, download: 'spectre.cy.js' }).click()
     URL.revokeObjectURL(url)
 })

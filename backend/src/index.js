@@ -5,13 +5,13 @@ import { analyzeRoutes } from './routes/analyze.js'
 import { generateRoutes } from './routes/generate.js'
 import { sessionRoutes } from './routes/session.js'
 import { extensionRoutes } from './routes/extension.js'
+import { sessionGenerateRoutes } from './routes/session-generate.js'
 
 const app = express()
 const PORT = process.env.PORT || 8080
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin, web origins, and Chrome extensions
     if (!origin || origin.startsWith('chrome-extension://') || origin.startsWith('http')) {
       callback(null, true)
     } else {
@@ -23,7 +23,7 @@ app.use(cors({
 }))
 
 app.options('*', cors())
-app.use(express.json({ limit: '20mb' }))
+app.use(express.json({ limit: '50mb' }))
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'spectre-backend', version: '1.0.0' })
@@ -33,6 +33,7 @@ app.use('/api/analyze', analyzeRoutes)
 app.use('/api/generate', generateRoutes)
 app.use('/api/session', sessionRoutes)
 app.use('/api/generate-from-extension', extensionRoutes)
+app.use('/api/generate-from-session', sessionGenerateRoutes)
 
 app.use((err, req, res, next) => {
   console.error('Error:', err.message)

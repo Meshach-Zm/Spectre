@@ -163,3 +163,62 @@ Return ONLY the raw .cy.js file content. No markdown, no code fences, no explana
   const result = await model.generateContent(parts)
   return result.response.text().trim().replace(/```javascript|```js|```/g, '').trim()
 }
+
+// Generate tests from a full recorded session (multiple states)
+export async function generateFromSession({ states, network, config }) {
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+
+  const sessionNarrative = states.map((state, i) => {
+    const action = state.action
+    const lines = [`## State ${i + 1}: ${action?.type || 'unknown'}`]
+    if (action?.url) lines.push(`URL: ${action.url}`)
+    if (action?.selector) lines.push(`Element: ${action.selector}`)
+    if (action?.text) lines.push(`Text: ${action.text}`)
+    if (action?.value) lines.push(`Value: ${action.value}`)
+    if (state.dom) lines.push(`DOM snapshot:\n${state.dom.slice(0, 8000)}`)
+    return lines.join('\n')
+  }).join('\n\n---\n\n')
+
+  const networkSummary = network?.length > 0
+    ? network.slice(0, 30).map(r => {
+      let line = `${r.method} ${r.url} → ${r.status}`
+      if (r.requestBody) line += `\n  Request: ${r.requestBody.slice(0, 200)}`
+      if (r.responseBody) line += `\n  Response: ${r.responseBody.slice(0, 200)}`
+      return line
+    }).join('\n')
+    : null
+
+  const prompt = `You are a senior QA automation engineer. Generate a complete, production-ready Cypress test suite from a recorded user session.
+
+## Instructions
+- Use the DOM snapshots to extract REAL selectors — prefer data-testid, data-cy, aria-label, then id
+- Use the network log to write EXACT cy.intercept() calls with real URLs and methods
+- Reconstruct the full user journey from the recorded states
+- Generate tests for: happy path (what the user did), error states (500, 404), edge cases, viewport variations (desktop + mobile)
+- Each test must be fully independent with its own beforeEach
+- If you see a login flow in the states, generate a reusable beforeEach auth block
+- Add WHY THIS TEST MATTERS on each test
+- Include anti-flaky pattern comment block at the top
+
+## App context
+- Base URL: ${config?.baseUrl || 'http://localhost:3000'}
+- Notes: ${config?.notes || 'none'}
+
+## Recorded session (${states.length} states)
+${sessionNarrative}
+
+${networkSummary ? `## Network requests\n${networkSummary}` : ''}
+
+Return ONLY the raw .cy.js file. No markdown, no code fences, no explanation.`
+
+  // Include up to 3 screenshots as multimodal context
+  const parts = [prompt]
+  const screenshots = states.filter(s => s.screenshot).slice(0, 3)
+  screenshots.forEach((state, i) => {
+    parts.push(`\n[Screenshot ${i + 1} — after: ${state.action?.type} on ${state.action?.selector || state.action?.url}]`)
+    parts.push({ inlineData: { mimeType: 'image/png', data: state.screenshot } })
+  })
+
+  const result = await model.generateContent(parts)
+  return result.response.text().trim().replace(/```javascript|```js|```/g, '').trim()
+}

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Spectre Lens</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap"
-            rel="stylesheet">
-        <style>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spectre Lens</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+    <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -28,57 +28,39 @@
 
     .logo { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; color: #fff; }
     .logo span { color: #666; font-weight: 400; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
 
-    .dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 6px #22c55e;
-    }
+    main { padding: 16px; }
 
-    main { padding: 20px 16px; }
-
-    .status-row {
+    /* ── Mode tabs ── */
+    .mode-tabs {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .status-label {
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: #555;
-    }
-
-    .badge {
-      font-size: 10px;
-      padding: 2px 8px;
       border: 1px solid #222;
-      color: #666;
-      letter-spacing: 0.06em;
+      margin-bottom: 14px;
     }
 
-    .badge.active { border-color: rgba(34,197,94,0.4); color: #22c55e; }
-
-    .capture-btn {
-      width: 100%;
-      padding: 13px;
-      background: #fff;
-      color: #000;
-      border: 1px solid #fff;
+    .mode-tab {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
       font-family: 'DM Mono', monospace;
-      font-size: 13px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: #555;
       cursor: pointer;
-      transition: background 0.12s;
-      margin-bottom: 1px;
+      transition: all 0.12s;
+      text-align: center;
     }
 
-    .capture-btn:hover { background: #e5e5e5; }
-    .capture-btn:disabled { background: #0c0c0c; color: #555; border-color: #222; cursor: not-allowed; }
+    .mode-tab.active { background: #111; color: #fff; }
+    .mode-tab:first-child { border-right: 1px solid #222; }
 
+    /* ── Panels ── */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Config fields ── */
     .config-row {
       display: flex;
       align-items: stretch;
@@ -115,11 +97,84 @@
 
     .config-input::placeholder { color: #444; }
 
+    /* ── Buttons ── */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: all 0.12s;
+      border-radius: 0;
+    }
+
+    .btn-primary { background: #fff; color: #000; border: 1px solid #fff; }
+    .btn-primary:hover { background: #e5e5e5; }
+    .btn-primary:disabled { background: #0c0c0c; color: #555; border-color: #222; cursor: not-allowed; }
+
+    .btn-record { background: #22c55e; color: #000; border: 1px solid #22c55e; margin-bottom: 1px; }
+    .btn-record:hover { background: #16a34a; border-color: #16a34a; }
+
+    .btn-stop { background: #ef4444; color: #fff; border: 1px solid #ef4444; margin-bottom: 1px; }
+    .btn-stop:hover { background: #dc2626; border-color: #dc2626; }
+
+    .btn-ghost {
+      background: transparent;
+      color: #a8a8a8;
+      border: 1px solid #222;
+    }
+    .btn-ghost:hover { color: #fff; border-color: #444; }
+
+    /* ── Recording state ── */
+    .recording-status {
+      display: none;
+      border: 1px solid rgba(239,68,68,0.3);
+      background: rgba(239,68,68,0.05);
+      padding: 10px 14px;
+      margin-bottom: 1px;
+    }
+
+    .recording-status.visible { display: flex; align-items: center; gap: 10px; }
+
+    .rec-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #ef4444;
+      animation: blink 1s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    .rec-label { font-size: 11px; color: #ef4444; letter-spacing: 0.06em; }
+    .rec-count { font-size: 11px; color: #666; margin-left: auto; }
+
+    /* ── Status badges ── */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .status-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #555; }
+
+    .badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid #222;
+      color: #555;
+      letter-spacing: 0.06em;
+    }
+
+    .badge.active { border-color: rgba(34,197,94,0.4); color: #22c55e; }
+
+    /* ── Loading ── */
     .loading-box {
       border: 1px solid #222;
-      padding: 16px;
+      padding: 14px 16px;
       background: #0c0c0c;
       display: none;
+      margin-bottom: 1px;
     }
 
     .loading-box.visible { display: block; }
@@ -134,10 +189,10 @@
     }
 
     .loading-step.visible { opacity: 1; }
-
     .step-bullet { font-size: 10px; color: #22c55e; }
     .step-text { font-size: 11px; color: #a8a8a8; }
 
+    /* ── Result ── */
     .result-box {
       border: 1px solid #1a1a1a;
       background: #0c0c0c;
@@ -154,12 +209,7 @@
       border-bottom: 1px solid #1a1a1a;
     }
 
-    .result-lines {
-      font-size: 13px;
-      color: #22c55e;
-      font-weight: 500;
-    }
-
+    .result-lines { font-size: 13px; color: #22c55e; font-weight: 500; }
     .result-sub { font-size: 10px; color: #555; margin-top: 2px; }
 
     .action-row { display: flex; gap: 1px; }
@@ -182,6 +232,7 @@
     .action-btn.primary:hover { background: #e5e5e5; }
     .action-btn.copied { color: #22c55e; border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.06); }
 
+    /* ── Error ── */
     .error-box {
       padding: 10px 14px;
       border: 1px solid #222;
@@ -189,118 +240,188 @@
       color: #ef4444;
       display: none;
       line-height: 1.6;
+      margin-bottom: 1px;
     }
 
     .error-box.visible { display: block; }
+
+    /* ── Session summary ── */
+    .session-summary {
+      border: 1px solid #222;
+      padding: 12px 14px;
+      background: #0c0c0c;
+      margin-bottom: 1px;
+      display: none;
+    }
+
+    .session-summary.visible { display: block; }
+
+    .session-title {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #22c55e;
+      margin-bottom: 8px;
+    }
+
+    .session-action {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 0;
+      font-size: 10px;
+      color: #666;
+      border-bottom: 1px solid #111;
+    }
+
+    .session-action:last-child { border-bottom: none; }
+    .action-type { color: #38bdf8; min-width: 70px; }
 
     .open-link {
       display: block;
       text-align: center;
       padding: 8px;
       font-size: 10px;
-      color: #444;
+      color: #333;
       letter-spacing: 0.06em;
       text-decoration: none;
       border-top: 1px solid #111;
       transition: color 0.12s;
+      margin-top: 12px;
     }
 
     .open-link:hover { color: #22c55e; }
 
-    .divider { height: 1px; background: #111; margin: 12px 0; }
-  </style>
-    </head>
-    <body>
-        <nav>
-            <div class="logo">SPECTRE <span>/ lens</span></div>
-            <div class="dot"></div>
-        </nav>
-
-        <main>
-            <!-- Data capture badges -->
-            <div class="status-row">
-                <span class="status-label">Capturing</span>
-                <span class="badge active">screenshot</span>
-                <span class="badge" id="badge-dom">DOM</span>
-                <span class="badge" id="badge-network">network</span>
-            </div>
-
-            <!-- Config fields -->
-            <div class="config-row">
-                <div class="config-label">Base URL</div>
-                <input class="config-input" id="input-url" type="text"
-                    placeholder="http://localhost:3000" />
-            </div>
-            <div class="config-row">
-                <div class="config-label">Focus</div>
-                <input class="config-input" id="input-focus" type="text"
-                    placeholder="login flow, checkout..." />
-            </div>
-            <div class="config-row" style="margin-bottom: 12px;">
-                <div class="config-label">Notes</div>
-                <input class="config-input" id="input-notes" type="text"
-                    placeholder="auth required, staging env..." />
-            </div>
-
-            <!-- Generate button -->
-            <button class="capture-btn" id="btn-generate">⚡ Generate
-                Tests</button>
-
-            <!-- Loading -->
-            <div class="loading-box" id="loading-box">
-                <div class="loading-step" id="step-1"><span
-                        class="step-bullet">▸</span><span
-                        class="step-text">Capturing screenshot...</span></div>
-                <div class="loading-step" id="step-2"><span
-                        class="step-bullet">▸</span><span
-                        class="step-text">Scraping DOM tree...</span></div>
-                <div class="loading-step" id="step-3"><span class="step-bullet"
-                        style="color:#38bdf8">▸</span><span
-                        class="step-text">Reading network
-                        requests...</span></div>
-                <div class="loading-step" id="step-4"><span class="step-bullet"
-                        style="color:#38bdf8">▸</span><span
-                        class="step-text">Sending to Gemini...</span></div>
-                <div class="loading-step" id="step-5">
-                    <span class="step-bullet" style="color:#4ade80">▸</span>
-                    <span class="step-text">Writing test suite...
-                        <span id="blink-dot"
-                            style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin-left:6px;vertical-align:middle;animation:blink 1s ease-in-out infinite"></span>
-                    </span>
-                </div>
-            </div>
-
-            <!-- Error -->
-            <div class="error-box" id="error-box"></div>
-
-            <!-- Result -->
-            <div class="result-box" id="result-box">
-                <div class="result-header">
-                    <div>
-                        <div class="result-lines" id="result-lines">—
-                            lines</div>
-                        <div class="result-sub">spectre.cy.js · ready to
-                            run</div>
-                    </div>
-                </div>
-                <div class="action-row">
-                    <button class="action-btn" id="btn-copy">copy</button>
-                    <button class="action-btn primary"
-                        id="btn-download">download .cy.js</button>
-                </div>
-            </div>
-        </main>
-
-        <a class="open-link"
-            href="https://spectre-frontend-60725814455.europe-west1.run.app"
-            target="_blank">
-            Open Spectre web app ↗
-        </a>
-
-        <style>
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
   </style>
+  </head>
+  <body>
+    <nav>
+      <div class="logo">SPECTRE <span>/ lens</span></div>
+      <div class="dot"></div>
+    </nav>
 
-        <script src="popup.js"></script>
-    </body>
+    <main>
+      <!-- Mode tabs -->
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-snapshot"
+          onclick="switchMode('snapshot')">⚡ Snapshot</button>
+        <button class="mode-tab" id="tab-record"
+          onclick="switchMode('record')">● Record Session</button>
+      </div>
+
+      <!-- ── Snapshot panel ── -->
+      <div class="panel active" id="panel-snapshot">
+        <div class="status-row">
+          <span class="status-label">Captures</span>
+          <span class="badge active">screenshot</span>
+          <span class="badge" id="badge-dom">DOM</span>
+          <span class="badge" id="badge-network">network</span>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">Base URL</div>
+          <input class="config-input" id="snap-url" type="text"
+            placeholder="http://localhost:3000" />
+        </div>
+        <div class="config-row">
+          <div class="config-label">Focus</div>
+          <input class="config-input" id="snap-focus" type="text"
+            placeholder="login flow, checkout..." />
+        </div>
+        <div class="config-row" style="margin-bottom: 12px;">
+          <div class="config-label">Notes</div>
+          <input class="config-input" id="snap-notes" type="text"
+            placeholder="auth required, routes..." />
+        </div>
+
+        <button class="btn btn-primary" id="btn-generate">⚡ Generate
+          Tests</button>
+      </div>
+
+      <!-- ── Record panel ── -->
+      <div class="panel" id="panel-record">
+        <div class="config-row">
+          <div class="config-label">Base URL</div>
+          <input class="config-input" id="rec-url" type="text"
+            placeholder="http://localhost:3000" />
+        </div>
+        <div class="config-row" style="margin-bottom: 12px;">
+          <div class="config-label">Notes</div>
+          <input class="config-input" id="rec-notes" type="text"
+            placeholder="auth required, staging env..." />
+        </div>
+
+        <!-- Recording status -->
+        <div class="recording-status" id="recording-status">
+          <div class="rec-dot"></div>
+          <span class="rec-label">RECORDING</span>
+          <span class="rec-count" id="rec-count">0 / 10</span>
+        </div>
+
+        <!-- Session summary (shown after stop) -->
+        <div class="session-summary" id="session-summary">
+          <div class="session-title">✓ Session captured</div>
+          <div id="session-actions-list"></div>
+        </div>
+
+        <button class="btn btn-record" id="btn-start-record">● Start
+          Recording</button>
+        <button class="btn btn-stop" id="btn-stop-record" style="display:none">■
+          Stop & Generate</button>
+        <button class="btn btn-ghost" id="btn-discard"
+          style="display:none; margin-top:1px">Discard</button>
+      </div>
+
+      <!-- ── Shared: Loading ── -->
+      <div class="loading-box" id="loading-box" style="margin-top:1px">
+        <div class="loading-step" id="step-1"><span
+            class="step-bullet">▸</span><span class="step-text"
+            id="step-1-text">Capturing screenshot...</span></div>
+        <div class="loading-step" id="step-2"><span
+            class="step-bullet">▸</span><span class="step-text"
+            id="step-2-text">Scraping DOM tree...</span></div>
+        <div class="loading-step" id="step-3"><span class="step-bullet"
+            style="color:#38bdf8">▸</span><span class="step-text"
+            id="step-3-text">Reading network requests...</span></div>
+        <div class="loading-step" id="step-4"><span class="step-bullet"
+            style="color:#38bdf8">▸</span><span class="step-text"
+            id="step-4-text">Sending to Gemini...</span></div>
+        <div class="loading-step" id="step-5">
+          <span class="step-bullet" style="color:#4ade80">▸</span>
+          <span class="step-text">Writing test suite...
+            <span
+              style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin-left:6px;vertical-align:middle;animation:blink 1s ease-in-out infinite"></span>
+          </span>
+        </div>
+      </div>
+
+      <!-- ── Shared: Error ── -->
+      <div class="error-box" id="error-box"></div>
+
+      <!-- ── Shared: Result ── -->
+      <div class="result-box" id="result-box" style="margin-top:1px">
+        <div class="result-header">
+          <div>
+            <div class="result-lines" id="result-lines">— lines</div>
+            <div class="result-sub">spectre.cy.js · ready to run</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="action-btn" id="btn-copy">copy</button>
+          <button class="action-btn primary" id="btn-download">download
+            .cy.js</button>
+        </div>
+      </div>
+    </main>
+
+    <a class="open-link"
+      href="https://spectre-frontend-60725814455.europe-west1.run.app"
+      target="_blank">
+      Open Spectre web app ↗
+    </a>
+
+    <script src="popup.js"></script>
+  </body>
 </html>
