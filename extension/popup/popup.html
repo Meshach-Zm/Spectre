@@ -47,7 +47,7 @@
       font-family: 'DM Mono', monospace;
       font-size: 11px;
       letter-spacing: 0.06em;
-      color: #555;
+      color: #aaa;
       cursor: pointer;
       transition: all 0.12s;
       text-align: center;
@@ -73,7 +73,7 @@
       font-size: 10px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #555;
+      color: #999;
       border-right: 1px solid #222;
       min-width: 80px;
       display: flex;
@@ -95,7 +95,7 @@
       caret-color: #22c55e;
     }
 
-    .config-input::placeholder { color: #444; }
+    .config-input::placeholder { color: #777; }
 
     /* ── Buttons ── */
     .btn {
@@ -156,13 +156,13 @@
       margin-bottom: 12px;
     }
 
-    .status-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #555; }
+    .status-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #999; }
 
     .badge {
       font-size: 10px;
       padding: 2px 8px;
-      border: 1px solid #222;
-      color: #555;
+      border: 1px solid #333;
+      color: #888;
       letter-spacing: 0.06em;
     }
 
@@ -210,7 +210,7 @@
     }
 
     .result-lines { font-size: 13px; color: #22c55e; font-weight: 500; }
-    .result-sub { font-size: 10px; color: #555; margin-top: 2px; }
+    .result-sub { font-size: 10px; color: #888; margin-top: 2px; }
 
     .action-row { display: flex; gap: 1px; }
 
@@ -282,7 +282,7 @@
       text-align: center;
       padding: 8px;
       font-size: 10px;
-      color: #333;
+      color: #777;
       letter-spacing: 0.06em;
       text-decoration: none;
       border-top: 1px solid #111;
@@ -291,6 +291,14 @@
     }
 
     .open-link:hover { color: #22c55e; }
+
+    #btn-new-test {
+      width: 100%; padding: 10px; background: transparent;
+      border: 1px solid #222; font-family: 'DM Mono', monospace;
+      font-size: 11px; color: #777; cursor: pointer;
+      letter-spacing: 0.06em; transition: all 0.12s;
+    }
+    #btn-new-test:hover { color: #fff; border-color: #444; }
 
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
@@ -305,10 +313,8 @@
     <main>
       <!-- Mode tabs -->
       <div class="mode-tabs">
-        <button class="mode-tab active" id="tab-snapshot"
-          onclick="switchMode('snapshot')">⚡ Snapshot</button>
-        <button class="mode-tab" id="tab-record"
-          onclick="switchMode('record')">● Record Session</button>
+        <button class="mode-tab active" id="tab-snapshot">⚡ Snapshot</button>
+        <button class="mode-tab" id="tab-record">● Record Session</button>
       </div>
 
       <!-- ── Snapshot panel ── -->
@@ -415,6 +421,10 @@
         </div>
       </div>
     </main>
+
+    <div id="btn-new-test-wrap" style="display:none; padding: 0 16px 4px;">
+      <button id="btn-new-test">+ New Test</button>
+    </div>
 
     <a class="open-link"
       href="https://spectre-frontend-60725814455.europe-west1.run.app"

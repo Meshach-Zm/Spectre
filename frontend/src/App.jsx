@@ -70,7 +70,21 @@ function StepBar({ current, onBack }) {
 function CaptureStep({ onCapture }) {
   const [dragging, setDragging] = useState(false)
   const [hovering, setHovering] = useState(false)
+  const [extensionInstalled, setExtensionInstalled] = useState(false)
   const inputRef = useRef()
+
+  // Detect Spectre Lens extension via postMessage handshake
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data?.type === 'SPECTRE_LENS_PRESENT') {
+        setExtensionInstalled(true)
+      }
+    }
+    window.addEventListener('message', handler)
+    // Ping the extension in case content script already loaded
+    window.postMessage({ type: 'SPECTRE_PING' }, '*')
+    return () => window.removeEventListener('message', handler)
+  }, [])
 
   const handleFile = useCallback((file) => {
     if (!file || !file.type.startsWith('image/')) return
@@ -109,12 +123,48 @@ function CaptureStep({ onCapture }) {
         </p>
       </div>
 
+      {/* Extension detected banner */}
+      {extensionInstalled ? (
+        <div style={{ border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.05)', padding: '14px 18px', marginBottom: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e', flexShrink: 0 }} />
+            <span style={{ fontSize: 11, color: '#22c55e', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Spectre Lens detected</span>
+          </div>
+          <p style={{ fontSize: 12, color: '#a8a8a8', lineHeight: 1.7, marginBottom: 10 }}>
+            Use the extension for richer tests — it captures DOM structure and network requests alongside your screenshot.
+          </p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['screenshot', 'DOM tree', 'network log', 'session recording'].map(tag => (
+              <span key={tag} style={{ fontSize: 10, letterSpacing: '0.06em', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', padding: '3px 8px' }}>
+                ✓ {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Install extension nudge */
+        <div style={{ border: '1px solid #1a1a1a', padding: '12px 16px', marginBottom: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>Want more accurate tests?</div>
+            <div style={{ fontSize: 11, color: '#555' }}>Install Spectre Lens — adds DOM + network capture</div>
+          </div>
+          <a
+            href="https://github.com/Meshach-Zm/Spectre/tree/main/extension"
+            target="_blank"
+            rel="noreferrer"
+            style={{ fontSize: 11, color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap', marginLeft: 12, flexShrink: 0 }}
+          >
+            Install ↗
+          </a>
+        </div>
+      )}
+
       {/* Screen capture — primary action */}
       <button
         onClick={handleScreenCapture}
-        style={btn({ width: '100%', padding: '14px', textAlign: 'center', background: '#9c9797', color: '#000', borderColor: '#fff', fontSize: 13, marginBottom: 1 })}
+        style={btn({ width: '100%', padding: '14px', textAlign: 'center', background: '#fff', color: '#000', borderColor: '#fff', fontSize: 13, marginBottom: 1, borderTop: 'none' })}
         onMouseEnter={e => e.currentTarget.style.background = '#e5e5e5'}
-        onMouseLeave={e => e.currentTarget.style.background = '#f8f3f3'}
+        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
       >
         ⌘ Capture screen live
       </button>
@@ -122,7 +172,7 @@ function CaptureStep({ onCapture }) {
       {/* Divider */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
         <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
-        <span style={{ fontSize: 11, color: '#f7eeee', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or</span>
+        <span style={{ fontSize: 11, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or</span>
         <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
       </div>
 

@@ -1,3 +1,20 @@
+// ── Web app handshake ─────────────────────────────────────────────────────────
+// Announce extension presence to the Spectre web app
+function announceExtension() {
+    window.postMessage({ type: 'SPECTRE_LENS_PRESENT', version: '1.0.0' }, '*')
+}
+
+// Announce on load and after a short delay (for SPAs that load async)
+announceExtension()
+setTimeout(announceExtension, 1000)
+
+// Listen for web app pings (it may ask again after mounting)
+window.addEventListener('message', (event) => {
+    if (event.data?.type === 'SPECTRE_PING') {
+        announceExtension()
+    }
+})
+
 // content.js — DOM scraper + session recorder
 // Injected into every page by the extension
 
