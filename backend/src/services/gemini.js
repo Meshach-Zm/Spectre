@@ -4,7 +4,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
 // Analyze a screenshot and extract UI components and interactions
 export async function analyzeScreenshot(base64Image, mimeType = 'image/png') {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `You are a QA automation expert analyzing a web application screenshot.
 
@@ -67,7 +67,7 @@ Return ONLY valid JSON. No markdown, no explanation.`
 
 // Generate Cypress test suite from analysis + user context
 export async function generateCypressTests(analysis, userContext = {}) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `You are a senior QA automation engineer. Generate a complete, production-ready Cypress test suite.
 
@@ -98,7 +98,7 @@ Return ONLY the complete JavaScript test file content. No markdown code blocks, 
 
 // Analyze screenshot and answer a follow-up question about it
 export async function askAboutScreenshot(base64Image, question, conversationHistory = []) {
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const history = conversationHistory.map(turn => ({
     role: turn.role,

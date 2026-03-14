@@ -37,7 +37,7 @@ function StepBar({ current, onBack }) {
       {current > 0 && (
         <button
           onClick={onBack}
-          style={btn({ marginRight: 24, color: '#666', borderColor: '#222' })}
+          style={btn({ marginRight: 24, color: '#999', borderColor: '#222' })}
           onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#fff' }}
           onMouseLeave={e => { e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = '#222' }}
         >← back</button>
@@ -118,43 +118,119 @@ function CaptureStep({ onCapture }) {
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
           Show Spectre<br />your application.
         </h1>
-        <p style={{ color: '#a8a8a8', fontSize: 13, lineHeight: 1.75, maxWidth: 400 }}>
+        <p style={{ color: '#ccc', fontSize: 13, lineHeight: 1.75, maxWidth: 400 }}>
           Upload a screenshot or capture your screen live. Spectre reads every pixel and writes production-ready Cypress tests.
         </p>
       </div>
 
-      {/* Extension detected banner */}
+      {/* Extension banner */}
       {extensionInstalled ? (
-        <div style={{ border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.05)', padding: '14px 18px', marginBottom: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e', flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: '#22c55e', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Spectre Lens detected</span>
+        // ── Detected state ──
+        <div style={{
+          border: '1px solid rgba(34,197,94,0.25)',
+          background: 'linear-gradient(135deg, rgba(34,197,94,0.07) 0%, rgba(34,197,94,0.02) 100%)',
+          padding: '18px 20px',
+          marginBottom: 1,
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Glow line top */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, #22c55e, transparent)' }} />
+
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+            {/* Left — icon + info */}
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flex: 1 }}>
+              {/* Extension icon */}
+              <div style={{
+                width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+                background: 'linear-gradient(135deg, #0f2016 0%, #0a1a0f 100%)',
+                border: '1px solid rgba(34,197,94,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 20,
+                boxShadow: '0 0 12px rgba(34,197,94,0.15)',
+              }}>👻</div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, color: '#fff', fontWeight: 500, letterSpacing: '0.02em' }}>Spectre Lens</span>
+                  <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', padding: '1px 7px', letterSpacing: '0.06em' }}>ACTIVE</span>
+                </div>
+                <div style={{ fontSize: 12, color: '#888', lineHeight: 1.6 }}>
+                  Extension connected — tests will include real DOM selectors and exact API routes.
+                </div>
+              </div>
+            </div>
+
+            {/* Right — live dot */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingTop: 2 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e', animation: 'pulse 2s ease-in-out infinite' }} />
+              <span style={{ fontSize: 10, color: '#22c55e', letterSpacing: '0.08em' }}>LIVE</span>
+            </div>
           </div>
-          <p style={{ fontSize: 12, color: '#a8a8a8', lineHeight: 1.7, marginBottom: 10 }}>
-            Use the extension for richer tests — it captures DOM structure and network requests alongside your screenshot.
-          </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['screenshot', 'DOM tree', 'network log', 'session recording'].map(tag => (
-              <span key={tag} style={{ fontSize: 10, letterSpacing: '0.06em', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)', padding: '3px 8px' }}>
-                ✓ {tag}
-              </span>
+
+          {/* Capability pills */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
+            {[
+              { icon: '📸', label: 'Screenshot' },
+              { icon: '🌲', label: 'DOM Tree' },
+              { icon: '🌐', label: 'Network Log' },
+              { icon: '⏺', label: 'Session Recording' },
+            ].map(({ icon, label }) => (
+              <div key={label} style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                fontSize: 11, color: '#ccc',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                padding: '4px 10px',
+                borderRadius: 4,
+              }}>
+                <span style={{ fontSize: 12 }}>{icon}</span>
+                <span>{label}</span>
+              </div>
             ))}
           </div>
         </div>
       ) : (
-        /* Install extension nudge */
-        <div style={{ border: '1px solid #1a1a1a', padding: '12px 16px', marginBottom: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 11, color: '#777', marginBottom: 3 }}>Want more accurate tests?</div>
-            <div style={{ fontSize: 11, color: '#555' }}>Install Spectre Lens — adds DOM + network capture</div>
+        // ── Install nudge ──
+        <div style={{
+          border: '1px solid #1e1e1e',
+          background: '#0a0a0a',
+          padding: '16px 18px',
+          marginBottom: 1,
+          display: 'flex', alignItems: 'center', gap: 16,
+        }}>
+          {/* Extension store-style icon */}
+          <div style={{
+            width: 40, height: 40, borderRadius: 9, flexShrink: 0,
+            background: '#111', border: '1px solid #222',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20,
+          }}>👻</div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+              <span style={{ fontSize: 13, color: '#ddd', fontWeight: 500 }}>Spectre Lens</span>
+              <span style={{ fontSize: 10, color: '#555', border: '1px solid #222', padding: '1px 6px', letterSpacing: '0.04em' }}>Chrome Extension</span>
+            </div>
+            <div style={{ fontSize: 11, color: '#666', lineHeight: 1.5 }}>
+              Adds DOM + network capture for pinpoint-accurate selectors and real API routes.
+            </div>
           </div>
+
           <a
             href="https://github.com/Meshach-Zm/Spectre/tree/main/extension"
             target="_blank"
             rel="noreferrer"
-            style={{ fontSize: 11, color: '#22c55e', textDecoration: 'none', whiteSpace: 'nowrap', marginLeft: 12, flexShrink: 0 }}
+            style={{
+              flexShrink: 0, fontSize: 11, color: '#000', background: '#22c55e',
+              textDecoration: 'none', padding: '7px 14px', fontFamily: 'DM Mono',
+              fontWeight: 500, letterSpacing: '0.04em', transition: 'background 0.12s',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#16a34a'}
+            onMouseLeave={e => e.currentTarget.style.background = '#22c55e'}
           >
-            Install ↗
+            + Add to Chrome
           </a>
         </div>
       )}
@@ -172,7 +248,7 @@ function CaptureStep({ onCapture }) {
       {/* Divider */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' }}>
         <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
-        <span style={{ fontSize: 11, color: '#444', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or</span>
+        <span style={{ fontSize: 11, color: '#666', letterSpacing: '0.08em', textTransform: 'uppercase' }}>or</span>
         <div style={{ flex: 1, height: 1, background: '#1a1a1a' }} />
       </div>
 
@@ -204,7 +280,7 @@ function CaptureStep({ onCapture }) {
         <div style={{ fontSize: 13, color: hovering ? '#fff' : '#a8a8a8', transition: 'color 0.12s', marginBottom: 4 }}>
           Drop screenshot here
         </div>
-        <div style={{ fontSize: 11, color: '#555' }}>PNG · JPG · WebP</div>
+        <div style={{ fontSize: 11, color: '#888' }}>PNG · JPG · WebP</div>
         <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleFile(e.target.files[0])} />
       </div>
     </div>
@@ -237,7 +313,7 @@ function AnalyseStep({ capture, onAnalysis }) {
         <h1 style={{ fontSize: 38, fontWeight: 400, lineHeight: 1.12, letterSpacing: '-0.02em', marginBottom: 14 }}>
           Gemini reads<br />your UI.
         </h1>
-        <p style={{ color: '#a8a8a8', fontSize: 13, lineHeight: 1.75 }}>
+        <p style={{ color: '#ccc', fontSize: 13, lineHeight: 1.75 }}>
           Every component, every journey, every edge case — identified from pixels alone.
         </p>
       </div>
@@ -312,7 +388,7 @@ function ConfigureStep({ analysis, onConfigure }) {
           <span style={{ color: '#22c55e' }}>{analysis.components?.length || 0}</span> components.<br />
           <span style={{ color: '#22c55e' }}>{analysis.suggestedTests?.length || 0}</span> scenarios.
         </h1>
-        <p style={{ color: '#a8a8a8', fontSize: 13, lineHeight: 1.75, maxWidth: 440 }}>
+        <p style={{ color: '#ccc', fontSize: 13, lineHeight: 1.75, maxWidth: 440 }}>
           {analysis.appType}
         </p>
       </div>
@@ -320,7 +396,7 @@ function ConfigureStep({ analysis, onConfigure }) {
       {analysis.userJourneys?.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 32 }}>
           {analysis.userJourneys.slice(0, 6).map(j => (
-            <span key={j.name} style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#a8a8a8', border: '1px solid #222', padding: '4px 10px' }}>
+            <span key={j.name} style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#ccc', border: '1px solid #333', padding: '4px 10px' }}>
               {j.name}
             </span>
           ))}
@@ -434,7 +510,7 @@ function GenerateStep({ analysis, config, capture }) {
         {loadingSteps.map((s, i) => (
           <div key={s.text} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '6px 0', animation: `appear 0.5s ease ${i * 0.35}s both` }}>
             <span style={{ color: s.color, fontSize: 10 }}>▸</span>
-            <span style={{ fontSize: 12, color: '#a8a8a8' }}>
+            <span style={{ fontSize: 12, color: '#ccc' }}>
               {s.text}
               {i === loadingSteps.length - 1 && (
                 <span style={{
@@ -453,7 +529,7 @@ function GenerateStep({ analysis, config, capture }) {
   if (error) return (
     <div style={{ animation: 'up 0.25s ease', border: '1px solid #222', padding: 24 }}>
       <div style={{ fontSize: 12, color: '#ef4444', marginBottom: 16 }}>⚠ {error}</div>
-      <button onClick={() => { hasFetched.current = false; generate() }} style={btn({ color: '#fff', borderColor: '#333' })}
+      <button onClick={() => { hasFetched.current = false; generate() }} style={btn({ color: '#fff', borderColor: '#444' })}
         onMouseEnter={e => e.currentTarget.style.background = '#0c0c0c'}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
         Retry →
@@ -479,7 +555,7 @@ function GenerateStep({ analysis, config, capture }) {
           </div>
           <div style={{ fontSize: 20, fontWeight: 400, letterSpacing: '-0.02em' }}>
             <span style={{ color: '#22c55e' }}>{lineCount}</span>
-            <span style={{ color: '#a8a8a8' }}> lines · Ready to run</span>
+            <span style={{ color: '#ccc' }}> lines · Ready to run</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 1 }}>
@@ -508,7 +584,7 @@ function GenerateStep({ analysis, config, capture }) {
       {sessionId && (
         <div style={{ border: '1px solid #222', marginTop: 1 }}>
           <div style={{ display: 'flex', borderBottom: answer ? '1px solid #222' : 'none' }}>
-            <div style={{ padding: '13px 16px', fontSize: 13, letterSpacing: '0.04em', color: '#888', borderRight: '1px solid #222', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
+            <div style={{ padding: '13px 16px', fontSize: 13, letterSpacing: '0.04em', color: '#bbb', borderRight: '1px solid #222', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
               Ask
             </div>
             <input
@@ -532,7 +608,7 @@ function GenerateStep({ analysis, config, capture }) {
             )}
           </div>
           {answer && (
-            <div style={{ padding: '16px 18px', fontSize: 12, color: '#a8a8a8', lineHeight: 1.8, borderLeft: '2px solid #22c55e', background: '#0c0c0c' }}>
+            <div style={{ padding: '16px 18px', fontSize: 12, color: '#ccc', lineHeight: 1.8, borderLeft: '2px solid #22c55e', background: '#0c0c0c' }}>
               {answer}
             </div>
           )}
@@ -557,7 +633,7 @@ export default function App() {
       <nav style={{ borderBottom: '1px solid #1a1a1a', padding: '0 40px', height: 48, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)', zIndex: 10 }}>
         <button onClick={() => setStep(0)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, padding: 0 }}>
           <span style={{ fontSize: 14, color: '#fff', fontWeight: 500, letterSpacing: '0.08em', fontFamily: 'DM Mono' }}>SPECTRE</span>
-          <span style={{ fontSize: 12, color: '#666', letterSpacing: '0.06em', fontFamily: 'DM Mono' }}>/ visual qa</span>
+          <span style={{ fontSize: 12, color: '#999', letterSpacing: '0.06em', fontFamily: 'DM Mono' }}>/ visual qa</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e' }} />
