@@ -8,6 +8,12 @@ Built for the **Gemini Live Agent Challenge 2026** — UI Navigator category.
 
 ---
 
+## Architecture
+
+![Spectre Architecture](docs/architecture.png)
+
+---
+
 ## What It Does
 
 Spectre has two modes:
@@ -43,6 +49,7 @@ The web app detects the extension automatically and shows a **Start Recording** 
 | Extension | Chrome Manifest V3 |
 | Hosting | Google Cloud Run |
 | Container | Docker |
+| CI/CD | GitHub + Cloud Build |
 
 ---
 
@@ -104,6 +111,8 @@ gcloud run deploy spectre-frontend \
   --allow-unauthenticated
 ```
 
+Automated deployment is also available via `deploy.sh` — see the script for full usage.
+
 ---
 
 ## How Spectre Uses Gemini
@@ -134,6 +143,8 @@ With just a screenshot you get a working starting point in seconds. With the ext
 spectre/
 ├── Dockerfile                   ← Backend container
 ├── deploy.sh                    ← Manual deploy script
+├── docs/
+│   └── architecture.png         ← Architecture diagram
 ├── backend/
 │   └── src/
 │       ├── index.js             ← Express server + CORS
